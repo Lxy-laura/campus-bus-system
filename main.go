@@ -6,6 +6,7 @@ import (
 	"campus-bus/middleware"
 	"campus-bus/model"
 	"campus-bus/routes"
+	"campus-bus/service"
 	"fmt"
 	"log"
 )
@@ -22,6 +23,10 @@ func main() {
 	database.InitMySQL()
 	// 自动建表
 	database.DB.AutoMigrate(&model.User{}, &model.Route{}, &model.Stop{}, &model.Schedule{})
+	// 初始化管理员用户（admin/admin123456）
+	if err := service.InitAdminUser(); err != nil {
+		log.Printf("Failed to init admin user: %v", err)
+	}
 
 	// 3. 初始化 Redis
 	database.InitRedis()

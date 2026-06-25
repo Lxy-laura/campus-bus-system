@@ -62,11 +62,10 @@ func GetStopsByRouteID(routeID uint) ([]model.Stop, error) {
 	return stops, nil
 }
 
-func CreateStop(stop model.Stop) error {
-	if err := database.DB.Create(&stop).Error; err != nil {
+func CreateStop(stop *model.Stop) error {
+	if err := database.DB.Create(stop).Error; err != nil {
 		return err
 	}
-	// 清除相关缓存
 	database.RDB.Del(context.Background(), "bus:stops:all")
 	database.RDB.Del(context.Background(), fmt.Sprintf("bus:stops:route:%d", stop.RouteID))
 	return nil

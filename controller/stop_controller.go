@@ -27,9 +27,9 @@ func CreateStop(c *gin.Context) {
 		return
 	}
 
-	if err := service.CreateStop(input); err != nil {
+	if err := service.CreateStop(&input); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create stop"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Stop created successfully"})
+	c.JSON(http.StatusOK, gin.H{"id": input.ID, "message": "Stop created successfully"})
 }

@@ -26,7 +26,11 @@ func Register(c *gin.Context) {
 	}
 
 	if err := service.Register(req.Username, req.Password); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Register failed"})
+		if err.Error() == "user already exists" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "user already exists"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Register failed"})
+		}
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Register success"})
