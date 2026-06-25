@@ -1,0 +1,16 @@
+p, admin, /api/v1/routes, POST
+p, admin, /api/v1/routes/:id, PUT
+p, admin, /api/v1/routes/:id, DELETE
+p, admin, /api/v1/schedules, POST
+p, admin, /api/v1/schedules/:id, DELETE
+p, admin, /api/v1/stops, POST
+p, admin, /api/v1/stops/:id, PUT
+p, admin, /api/v1/stops/:id, DELETE
+
+# 用户权限
+p, user, /api/v1/routes, GET
+p, user, /api/v1/schedules, GET
+p, user, /api/v1/stops, GET
+p, user, /api/v1/users/profile, GET
+
+g, admin, user
