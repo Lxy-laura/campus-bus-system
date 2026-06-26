@@ -2,9 +2,11 @@ package database
 
 import (
 	"campus-bus/config"
+	"campus-bus/utils"
 	"context"
 	"fmt"
-	"log"
+
+	"go.uber.org/zap"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -21,7 +23,7 @@ func InitRedis() {
 	ctx := context.Background()
 	_, err := RDB.Ping(ctx).Result()
 	if err != nil {
-		log.Fatalf("Failed to connect to Redis: %v", err)
+		utils.Logger.Fatal("Failed to connect to Redis", zap.Error(err))
 	}
-	log.Println("Redis connected successfully")
+	utils.Sugar.Info("Redis connected successfully")
 }

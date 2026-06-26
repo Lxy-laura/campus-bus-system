@@ -20,3 +20,11 @@ redis:
 jwt:
   secret: "campus_bus_secret_key_2024"
   expire: 86400
+
+log:
+  level: "debug"
+  format: "console"
+  filename: "logs/app.log"
+  max_size: 100
+  max_age: 30
+  max_backups: 10

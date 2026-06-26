@@ -13,6 +13,16 @@ type AppConfig struct {
 	Mysql  MysqlConfig  `mapstructure:"mysql"`
 	Redis  RedisConfig  `mapstructure:"redis"`
 	JWT    JWTConfig    `mapstructure:"jwt"`
+	Log    LogConfig    `mapstructure:"log"`
+}
+
+type LogConfig struct {
+	Level      string `mapstructure:"level"`
+	Format     string `mapstructure:"format"`
+	Filename   string `mapstructure:"filename"`
+	MaxSize    int    `mapstructure:"max_size"`
+	MaxAge     int    `mapstructure:"max_age"`
+	MaxBackups int    `mapstructure:"max_backups"`
 }
 
 type ServerConfig struct {

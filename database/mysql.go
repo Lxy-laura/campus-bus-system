@@ -2,9 +2,10 @@ package database
 
 import (
 	"campus-bus/config"
+	"campus-bus/utils"
 	"fmt"
-	"log"
 
+	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -24,10 +25,8 @@ func InitMySQL() {
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Failed to connect to MySQL: %v", err)
+		utils.Logger.Fatal("Failed to connect to MySQL", zap.Error(err))
 	}
 
-	// 自动迁移表结构 (开发阶段方便，生产环境建议手动迁移)
-	// 注意：需要在 main.go 中导入 model 包才能生效，或者在这里引用
-	log.Println("MySQL connected successfully")
+	utils.Sugar.Info("MySQL connected successfully")
 }
