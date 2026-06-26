@@ -14,7 +14,6 @@ func GetSchedulesByRouteID(routeID uint) ([]model.Schedule, error) {
 	ctx := context.Background()
 	cacheKey := fmt.Sprintf("bus:schedules:route:%d", routeID)
 
-	// 1. 尝试从 Redis 获取
 	val, err := database.RDB.Get(ctx, cacheKey).Result()
 	if err == nil {
 		var schedules []model.Schedule
@@ -23,17 +22,24 @@ func GetSchedulesByRouteID(routeID uint) ([]model.Schedule, error) {
 		}
 	}
 
-	// 2. Redis 未命中，查询数据库
 	var schedules []model.Schedule
 	if err := database.DB.Where("route_id = ?", routeID).Find(&schedules).Error; err != nil {
 		return nil, err
 	}
 
-	// 3. 写入 Redis 缓存，过期时间 10 分钟
 	data, _ := json.Marshal(schedules)
 	database.RDB.Set(ctx, cacheKey, data, 10*time.Minute)
 
 	return schedules, nil
+}
+
+// GetScheduleByID 根据ID获取时刻表详情
+func GetScheduleByID(id uint) (*model.Schedule, error) {
+	var schedule model.Schedule
+	if err := database.DB.First(&schedule, id).Error; err != nil {
+		return nil, err
+	}
+	return &schedule, nil
 }
 
 // CreateSchedule 创建时刻表
@@ -41,14 +47,37 @@ func CreateSchedule(schedule model.Schedule) error {
 	if err := database.DB.Create(&schedule).Error; err != nil {
 		return err
 	}
-	// 清除对应路线的缓存
 	database.RDB.Del(context.Background(), fmt.Sprintf("bus:schedules:route:%d", schedule.RouteID))
+	return nil
+}
+
+// UpdateSchedule 修改时刻表
+func UpdateSchedule(id uint, routeID uint, departTime string, weekDay int) error {
+	var schedule model.Schedule
+	if err := database.DB.First(&schedule, id).Error; err != nil {
+		return err
+	}
+
+	oldRouteID := schedule.RouteID
+
+	schedule.RouteID = routeID
+	schedule.DepartTime = departTime
+	schedule.WeekDay = weekDay
+
+	if err := database.DB.Save(&schedule).Error; err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	database.RDB.Del(ctx, fmt.Sprintf("bus:schedules:route:%d", oldRouteID))
+	if oldRouteID != routeID {
+		database.RDB.Del(ctx, fmt.Sprintf("bus:schedules:route:%d", routeID))
+	}
 	return nil
 }
 
 // DeleteSchedule 删除时刻表
 func DeleteSchedule(id uint) error {
-	// 先查询出 routeID 以便清除缓存
 	var s model.Schedule
 	if err := database.DB.First(&s, id).Error; err != nil {
 		return err

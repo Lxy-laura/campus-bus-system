@@ -30,6 +30,22 @@ func GetSchedules(c *gin.Context) {
 	c.JSON(http.StatusOK, schedules)
 }
 
+func GetSchedule(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID"})
+		return
+	}
+
+	schedule, err := service.GetScheduleByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Schedule not found"})
+		return
+	}
+	c.JSON(http.StatusOK, schedule)
+}
+
 func CreateSchedule(c *gin.Context) {
 	var input model.Schedule
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -42,6 +58,31 @@ func CreateSchedule(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Schedule created"})
+}
+
+func UpdateSchedule(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID"})
+		return
+	}
+
+	var input struct {
+		RouteID    uint   `json:"route_id" binding:"required"`
+		DepartTime string `json:"depart_time" binding:"required"`
+		WeekDay    int    `json:"week_day" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := service.UpdateSchedule(uint(id), input.RouteID, input.DepartTime, input.WeekDay); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update schedule"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Schedule updated"})
 }
 
 func DeleteSchedule(c *gin.Context) {
