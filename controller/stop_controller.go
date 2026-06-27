@@ -1,4 +1,3 @@
-// 文件路径: campus-bus/controller/stop_controller.go
 package controller
 
 import (

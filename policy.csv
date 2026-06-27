@@ -13,4 +13,5 @@ p, user, /api/v1/schedules, GET
 p, user, /api/v1/stops, GET
 p, user, /api/v1/users/profile, GET
 
-g, admin, user
+# 角色继承：g, user, admin 表示 user 继承 admin 的权限（即 user 拥有 admin 的所有权限）
+g, user, admin

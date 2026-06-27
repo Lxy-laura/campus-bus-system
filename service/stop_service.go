@@ -1,4 +1,3 @@
-// 文件路径: campus-bus/service/stop_service.go
 package service
 
 import (
@@ -7,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -31,8 +31,12 @@ func GetAllStops() ([]model.Stop, error) {
 	}
 
 	// 3. 写入 Redis 缓存
-	data, _ := json.Marshal(stops)
-	database.RDB.Set(ctx, cacheKey, data, 10*time.Minute)
+	data, err := json.Marshal(stops)
+	if err != nil {
+		log.Printf("Failed to marshal stops: %v", err)
+	} else if err := database.RDB.Set(ctx, cacheKey, data, 10*time.Minute).Err(); err != nil {
+		log.Printf("Failed to cache stops: %v", err)
+	}
 
 	return stops, nil
 }
@@ -56,8 +60,12 @@ func GetStopsByRouteID(routeID uint) ([]model.Stop, error) {
 		return nil, err
 	}
 
-	data, _ := json.Marshal(stops)
-	database.RDB.Set(ctx, cacheKey, data, 10*time.Minute)
+	data, err := json.Marshal(stops)
+	if err != nil {
+		log.Printf("Failed to marshal stops: %v", err)
+	} else if err := database.RDB.Set(ctx, cacheKey, data, 10*time.Minute).Err(); err != nil {
+		log.Printf("Failed to cache stops: %v", err)
+	}
 
 	return stops, nil
 }

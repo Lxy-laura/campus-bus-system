@@ -5,6 +5,7 @@ import (
 	"campus-bus/model"
 	"context"
 	"encoding/json"
+	"log"
 	"time"
 )
 
@@ -29,8 +30,12 @@ func GetRoutes() ([]model.Route, error) {
 	}
 
 	// 3. 写入 Redis 缓存，过期时间 10 分钟
-	data, _ := json.Marshal(routes)
-	database.RDB.Set(ctx, cacheKey, data, 10*time.Minute)
+	data, err := json.Marshal(routes)
+	if err != nil {
+		log.Printf("Failed to marshal routes: %v", err)
+	} else if err := database.RDB.Set(ctx, cacheKey, data, 10*time.Minute).Err(); err != nil {
+		log.Printf("Failed to cache routes: %v", err)
+	}
 
 	return routes, nil
 }

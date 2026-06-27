@@ -1,4 +1,3 @@
-// 文件路径: c:\Users\Administrator\Desktop\campus-bus-system\routes\router.go
 package routes
 
 import (

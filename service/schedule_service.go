@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -30,8 +31,12 @@ func GetSchedulesByRouteID(routeID uint) ([]model.Schedule, error) {
 	}
 
 	// 3. 写入 Redis 缓存，过期时间 10 分钟
-	data, _ := json.Marshal(schedules)
-	database.RDB.Set(ctx, cacheKey, data, 10*time.Minute)
+	data, err := json.Marshal(schedules)
+	if err != nil {
+		log.Printf("Failed to marshal schedules: %v", err)
+	} else if err := database.RDB.Set(ctx, cacheKey, data, 10*time.Minute).Err(); err != nil {
+		log.Printf("Failed to cache schedules: %v", err)
+	}
 
 	return schedules, nil
 }

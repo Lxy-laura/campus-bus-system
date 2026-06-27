@@ -17,6 +17,11 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		}
 
 		// 简单处理 Bearer Token
+		if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization Header Format"})
+			c.Abort()
+			return
+		}
 		tokenString := authHeader[7:]
 		claims, err := utils.ParseToken(tokenString)
 		if err != nil {
