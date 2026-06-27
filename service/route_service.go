@@ -5,6 +5,7 @@ import (
 	"campus-bus/model"
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -48,5 +49,47 @@ func CreateRoute(name, description string) error {
 
 	// 清除缓存
 	database.RDB.Del(context.Background(), "bus:routes:all")
+	return nil
+}
+
+// DeleteRoute 删除路线，同时删除相关的站点和时刻表，并清除所有相关缓存
+func DeleteRoute(id uint) error {
+	// 先获取路线信息
+	var route model.Route
+	if err := database.DB.First(&route, id).Error; err != nil {
+		return err
+	}
+
+	// 开启事务，确保原子性
+	tx := database.DB.Begin()
+
+	// 1. 删除该路线的所有站点
+	if err := tx.Where("route_id = ?", id).Delete(&model.Stop{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 2. 删除该路线的所有时刻表
+	if err := tx.Where("route_id = ?", id).Delete(&model.Schedule{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 3. 删除路线本身
+	if err := tx.Delete(&model.Route{}, id).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 提交事务
+	tx.Commit()
+
+	// 清除所有相关缓存
+	ctx := context.Background()
+	database.RDB.Del(ctx, "bus:routes:all")
+	database.RDB.Del(ctx, "bus:stops:all")
+	database.RDB.Del(ctx, fmt.Sprintf("bus:stops:route:%d", id))
+	database.RDB.Del(ctx, fmt.Sprintf("bus:schedules:route:%d", id))
+
 	return nil
 }

@@ -3,6 +3,7 @@ package controller
 import (
 	"campus-bus/service"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,4 +32,20 @@ func CreateRoute(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Route created"})
+}
+
+// DeleteRoute 处理删除路线的请求
+func DeleteRoute(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID"})
+		return
+	}
+
+	if err := service.DeleteRoute(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete route"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Route deleted successfully"})
 }

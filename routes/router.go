@@ -37,6 +37,7 @@ func SetupRouter() *gin.Engine {
 		{
 			// Route Management
 			adminOnly.POST("/routes", controller.CreateRoute)
+			adminOnly.DELETE("/routes/:id", controller.DeleteRoute)
 
 			// Schedule Management
 			adminOnly.POST("/schedules", controller.CreateSchedule)
@@ -45,6 +46,7 @@ func SetupRouter() *gin.Engine {
 			// Stop Management
 			// 现在这里不会报错了，因为 controller.CreateStop 已定义
 			adminOnly.POST("/stops", controller.CreateStop)
+			adminOnly.DELETE("/stops/:id", controller.DeleteStop)
 		}
 	}
 

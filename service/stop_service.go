@@ -71,3 +71,22 @@ func CreateStop(stop model.Stop) error {
 	database.RDB.Del(context.Background(), fmt.Sprintf("bus:stops:route:%d", stop.RouteID))
 	return nil
 }
+
+// DeleteStop 删除站点
+func DeleteStop(id uint) error {
+	// 先查询站点信息，用于清除缓存
+	var stop model.Stop
+	if err := database.DB.First(&stop, id).Error; err != nil {
+		return err
+	}
+
+	if err := database.DB.Delete(&model.Stop{}, id).Error; err != nil {
+		return err
+	}
+
+	// 清除相关缓存
+	database.RDB.Del(context.Background(), "bus:stops:all")
+	database.RDB.Del(context.Background(), fmt.Sprintf("bus:stops:route:%d", stop.RouteID))
+
+	return nil
+}

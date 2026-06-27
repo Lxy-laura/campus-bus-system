@@ -42,11 +42,13 @@ export const authAPI = {
 export const routeAPI = {
   getRoutes: () => api.get('/routes'),
   createRoute: (data) => api.post('/routes', data),
+  deleteRoute: (id) => api.delete(`/routes/${id}`),
 }
 
 export const stopAPI = {
   getStops: () => api.get('/stops'),
   createStop: (data) => api.post('/stops', data),
+  deleteStop: (id) => api.delete(`/stops/${id}`),
 }
 
 export const scheduleAPI = {
