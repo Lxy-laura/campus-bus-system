@@ -1,0 +1,22 @@
+# config.yaml
+server:
+  port: 8080
+  mode: debug
+
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: 123456 # 请确保这里密码正确
+  dbname: campus_bus
+  charset: utf8mb4
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: "campus_bus_secret_key_2024"
+  expire: 86400

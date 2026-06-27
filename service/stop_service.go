@@ -1,0 +1,91 @@
+// 文件路径: campus-bus/service/stop_service.go
+package service
+
+import (
+	"campus-bus/database"
+	"campus-bus/model"
+	"context"
+	"encoding/json"
+	"fmt"
+	"time"
+)
+
+// GetAllStops 获取所有站点
+func GetAllStops() ([]model.Stop, error) {
+	ctx := context.Background()
+	cacheKey := "bus:stops:all"
+
+	// 1. 尝试从 Redis 获取
+	val, err := database.RDB.Get(ctx, cacheKey).Result()
+	if err == nil {
+		var stops []model.Stop
+		if err := json.Unmarshal([]byte(val), &stops); err == nil {
+			return stops, nil
+		}
+	}
+
+	// 2. Redis 未命中，查询数据库
+	var stops []model.Stop
+	if err := database.DB.Find(&stops).Error; err != nil {
+		return nil, err
+	}
+
+	// 3. 写入 Redis 缓存
+	data, _ := json.Marshal(stops)
+	database.RDB.Set(ctx, cacheKey, data, 10*time.Minute)
+
+	return stops, nil
+}
+
+// GetStopsByRouteID 获取指定路线的站点，按 OrderNum 排序
+func GetStopsByRouteID(routeID uint) ([]model.Stop, error) {
+	ctx := context.Background()
+	cacheKey := fmt.Sprintf("bus:stops:route:%d", routeID)
+
+	val, err := database.RDB.Get(ctx, cacheKey).Result()
+	if err == nil {
+		var stops []model.Stop
+		if err := json.Unmarshal([]byte(val), &stops); err == nil {
+			return stops, nil
+		}
+	}
+
+	var stops []model.Stop
+	// 关键：按 order_num 排序
+	if err := database.DB.Where("route_id = ?", routeID).Order("order_num ASC").Find(&stops).Error; err != nil {
+		return nil, err
+	}
+
+	data, _ := json.Marshal(stops)
+	database.RDB.Set(ctx, cacheKey, data, 10*time.Minute)
+
+	return stops, nil
+}
+
+func CreateStop(stop model.Stop) error {
+	if err := database.DB.Create(&stop).Error; err != nil {
+		return err
+	}
+	// 清除相关缓存
+	database.RDB.Del(context.Background(), "bus:stops:all")
+	database.RDB.Del(context.Background(), fmt.Sprintf("bus:stops:route:%d", stop.RouteID))
+	return nil
+}
+func DeleteStop(id uint) error {
+	// 1. 先查站点是否存在，顺便拿到 route_id
+	var stop model.Stop
+	if err := database.DB.First(&stop, id).Error; err != nil {
+		return err
+	}
+
+	// 2. 删除站点
+	if err := database.DB.Delete(&model.Stop{}, id).Error; err != nil {
+		return err
+	}
+
+	// 3. 清除相关缓存
+	database.RDB.Del(context.Background(), "bus:stops:all")
+	database.RDB.Del(context.Background(), fmt.Sprintf("bus:stops:route:%d", stop.RouteID))
+
+	return nil
+}
