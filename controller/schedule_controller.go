@@ -11,8 +11,15 @@ import (
 
 func GetSchedules(c *gin.Context) {
 	routeIDStr := c.Query("route_id")
+
+	// 如果没有传 route_id，返回所有时刻表
 	if routeIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "route_id is required"})
+		schedules, err := service.GetAllSchedules()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch schedules"})
+			return
+		}
+		c.JSON(http.StatusOK, schedules)
 		return
 	}
 

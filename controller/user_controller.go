@@ -38,10 +38,25 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := service.Login(req.Username, req.Password)
+	token, user, err := service.Login(req.Username, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, gin.H{
+		"token": token,
+		"user":  user,
+	})
+}
+
+func GetProfile(c *gin.Context) {
+	username, _ := c.Get("username")
+	role, _ := c.Get("role")
+	userID, _ := c.Get("user_id")
+
+	c.JSON(http.StatusOK, gin.H{
+		"ID":       userID,
+		"Username": username,
+		"Role":     role,
+	})
 }

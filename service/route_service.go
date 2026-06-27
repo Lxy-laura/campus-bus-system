@@ -5,6 +5,7 @@ import (
 	"campus-bus/model"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 )
@@ -53,5 +54,22 @@ func CreateRoute(name, description string) error {
 
 	// 清除缓存
 	database.RDB.Del(context.Background(), "bus:routes:all")
+	return nil
+}
+
+// DeleteRoute 删除路线
+func DeleteRoute(id uint) error {
+	if err := database.DB.Delete(&model.Route{}, id).Error; err != nil {
+		return err
+	}
+
+	// 清除缓存
+	database.RDB.Del(context.Background(), "bus:routes:all")
+	// 清除相关的时刻表和站点缓存
+	database.RDB.Del(context.Background(), fmt.Sprintf("bus:schedules:route:%d", id))
+	database.RDB.Del(context.Background(), fmt.Sprintf("bus:stops:route:%d", id))
+	// 清除所有站点缓存
+	database.RDB.Del(context.Background(), "bus:stops:all")
+
 	return nil
 }

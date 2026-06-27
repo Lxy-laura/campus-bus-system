@@ -41,6 +41,37 @@ func GetSchedulesByRouteID(routeID uint) ([]model.Schedule, error) {
 	return schedules, nil
 }
 
+// GetAllSchedules 获取所有时刻表
+func GetAllSchedules() ([]model.Schedule, error) {
+	ctx := context.Background()
+	cacheKey := "bus:schedules:all"
+
+	// 1. 尝试从 Redis 获取
+	val, err := database.RDB.Get(ctx, cacheKey).Result()
+	if err == nil {
+		var schedules []model.Schedule
+		if err := json.Unmarshal([]byte(val), &schedules); err == nil {
+			return schedules, nil
+		}
+	}
+
+	// 2. Redis 未命中，查询数据库
+	var schedules []model.Schedule
+	if err := database.DB.Find(&schedules).Error; err != nil {
+		return nil, err
+	}
+
+	// 3. 写入 Redis 缓存，过期时间 10 分钟
+	data, err := json.Marshal(schedules)
+	if err != nil {
+		log.Printf("Failed to marshal schedules: %v", err)
+	} else if err := database.RDB.Set(ctx, cacheKey, data, 10*time.Minute).Err(); err != nil {
+		log.Printf("Failed to cache schedules: %v", err)
+	}
+
+	return schedules, nil
+}
+
 // CreateSchedule 创建时刻表
 func CreateSchedule(schedule model.Schedule) error {
 	if err := database.DB.Create(&schedule).Error; err != nil {
@@ -48,6 +79,8 @@ func CreateSchedule(schedule model.Schedule) error {
 	}
 	// 清除对应路线的缓存
 	database.RDB.Del(context.Background(), fmt.Sprintf("bus:schedules:route:%d", schedule.RouteID))
+	// 清除所有时刻表缓存
+	database.RDB.Del(context.Background(), "bus:schedules:all")
 	return nil
 }
 
@@ -64,5 +97,7 @@ func DeleteSchedule(id uint) error {
 	}
 
 	database.RDB.Del(context.Background(), fmt.Sprintf("bus:schedules:route:%d", s.RouteID))
+	// 清除所有时刻表缓存
+	database.RDB.Del(context.Background(), "bus:schedules:all")
 	return nil
 }

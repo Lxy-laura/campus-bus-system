@@ -30,21 +30,21 @@ func Register(username, password string) error {
 	return database.DB.Create(&newUser).Error
 }
 
-func Login(username, password string) (string, error) {
+func Login(username, password string) (string, model.User, error) {
 	var user model.User
 	if err := database.DB.Where("username = ?", username).First(&user).Error; err != nil {
-		return "", err
+		return "", user, err
 	}
 
 	// 验证密码
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", err
+		return "", user, err
 	}
 
 	// 生成 JWT
 	token, err := utils.GenerateToken(user.ID, user.Username, user.Role)
 	if err != nil {
-		return "", err
+		return "", user, err
 	}
-	return token, nil
+	return token, user, nil
 }

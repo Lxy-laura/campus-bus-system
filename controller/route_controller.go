@@ -3,6 +3,7 @@ package controller
 import (
 	"campus-bus/service"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,8 +19,8 @@ func GetRoutes(c *gin.Context) {
 
 func CreateRoute(c *gin.Context) {
 	var input struct {
-		Name        string `json:"name" binding:"required"`
-		Description string `json:"description"`
+		Name        string `json:"Name" binding:"required"`
+		Description string `json:"Description"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -31,4 +32,19 @@ func CreateRoute(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Route created"})
+}
+
+func DeleteRoute(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID"})
+		return
+	}
+
+	if err := service.DeleteRoute(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete route"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Route deleted"})
 }
