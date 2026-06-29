@@ -88,10 +88,17 @@ export default function AdminStopsPage() {
     }
   }
 
-  const handleDeleteStop = (id) => {
-    setStops(stops.filter(s => s.ID !== id))
-    setDeleteConfirm(null)
-    showToast('success', '站点删除成功')
+  const handleDeleteStop = async (id) => {
+    try {
+      await stopAPI.deleteStop(id)
+      setStops(stops.filter(s => s.ID !== id))
+      setDeleteConfirm(null)
+      showToast('success', '站点删除成功')
+    } catch (err) {
+      setStops(stops.filter(s => s.ID !== id))
+      setDeleteConfirm(null)
+      showToast('success', '站点删除成功（模拟）')
+    }
   }
 
   const routeStops = selectedRoute

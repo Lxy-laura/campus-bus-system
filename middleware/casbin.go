@@ -19,6 +19,11 @@ func InitCasbin() {
 
 func CasbinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.Request.Method == "OPTIONS" {
+			c.Next()
+			return
+		}
+
 		sub, exists := c.Get("role")
 		if !exists {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Role not found"})
@@ -29,7 +34,6 @@ func CasbinMiddleware() gin.HandlerFunc {
 		obj := c.Request.URL.Path
 		act := c.Request.Method
 
-		// Casbin 匹配
 		ok, err := CasbinEnforcer.Enforce(sub.(string), obj, act)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Casbin error"})

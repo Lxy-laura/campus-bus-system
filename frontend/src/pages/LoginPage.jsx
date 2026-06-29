@@ -47,14 +47,14 @@ export default function LoginPage() {
     try {
       const result = await authAPI.login(loginForm.username, loginForm.password)
       const token = result.token
+      const userData = result.user
       
-      const role = loginForm.username === 'admin' ? 'admin' : 'user'
-      login(token, { username: loginForm.username, role })
+      login(token, userData)
       
       setSuccess('登录成功，正在跳转...')
       
       setTimeout(() => {
-        if (role === 'admin') {
+        if (userData.Role === 'admin' || userData.role === 'admin') {
           navigate('/admin')
         } else {
           navigate('/')
@@ -63,7 +63,7 @@ export default function LoginPage() {
     } catch (err) {
       if (loginForm.username === 'admin' && loginForm.password === 'admin123') {
         const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock'
-        login(mockToken, { username: 'admin', role: 'admin' })
+        login(mockToken, { ID: 1, Username: 'admin', Role: 'admin' })
         setSuccess('登录成功，正在跳转...')
         setTimeout(() => navigate('/admin'), 800)
       } else {

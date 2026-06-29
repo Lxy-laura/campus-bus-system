@@ -9,6 +9,11 @@ import (
 
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.Request.Method == "OPTIONS" {
+			c.Next()
+			return
+		}
+
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Authorization Header"})
@@ -16,7 +21,6 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 简单处理 Bearer Token
 		if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization Header Format"})
 			c.Abort()
@@ -30,7 +34,6 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 将用户信息存入上下文
 		c.Set("user_id", claims.UserID)
 		c.Set("username", claims.Username)
 		c.Set("role", claims.Role)

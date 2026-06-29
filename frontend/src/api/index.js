@@ -51,6 +51,8 @@ export const routeAPI = {
     api.get('/routes'),
   createRoute: (name, description) =>
     api.post('/routes', { name, description }),
+  deleteRoute: (id) =>
+    api.delete(`/routes/${id}`),
 }
 
 export const scheduleAPI = {
@@ -67,6 +69,8 @@ export const stopAPI = {
     api.get('/stops'),
   createStop: (data) =>
     api.post('/stops', data),
+  deleteStop: (id) =>
+    api.delete(`/stops/${id}`),
 }
 
 export default api

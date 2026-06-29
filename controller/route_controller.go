@@ -19,12 +19,20 @@ func GetRoutes(c *gin.Context) {
 
 func CreateRoute(c *gin.Context) {
 	var input struct {
-		Name        string `json:"Name" binding:"required"`
-		Description string `json:"Description"`
+		Name        string `json:"name" binding:"required"`
+		Description string `json:"description"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		var inputUpper struct {
+			Name        string `json:"Name" binding:"required"`
+			Description string `json:"Description"`
+		}
+		if err2 := c.ShouldBindJSON(&inputUpper); err2 != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		input.Name = inputUpper.Name
+		input.Description = inputUpper.Description
 	}
 
 	if err := service.CreateRoute(input.Name, input.Description); err != nil {

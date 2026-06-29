@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
   }
 
   const isAdmin = () => {
-    return user?.role === 'admin'
+    return user?.Role === 'admin' || user?.role === 'admin'
   }
 
   const value = {
