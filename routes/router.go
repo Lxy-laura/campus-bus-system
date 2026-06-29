@@ -26,10 +26,16 @@ func SetupRouter() *gin.Engine {
 
 	protected := r.Group("/api/v1")
 	protected.Use(middleware.JWTAuthMiddleware())
-	{
+	{// 获取用户信息
 		protected.GET("/users/profile", func(c *gin.Context) {
 			username, _ := c.Get("username")
-			c.JSON(200, gin.H{"username": username})
+			role, _ := c.Get("role")
+			userID, _ := c.Get("user_id")
+			c.JSON(200, gin.H{
+				"id":       userID,
+				"username": username,
+				"role":     role,
+			})
 		})
 
 		adminOnly := protected.Group("")

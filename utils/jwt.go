@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+
 type Claims struct {
 	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
@@ -35,12 +36,10 @@ func GenerateToken(userID uint, username, role string) (string, error) {
 	return token.SignedString([]byte(config.Conf.JWT.Secret))
 }
 
-// 文件路径: campus-bus/utils/jwt.go
 func ParseToken(tokenString string) (*Claims, error) {
 	log.Printf("Attempting to parse token: %s", tokenString)
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		// 临时硬编码 secret
-		return []byte("campus_bus_secret_key_2024"), nil
+		return []byte(config.Conf.JWT.Secret), nil
 	})
 	if err != nil {
 		log.Printf("JWT Parse Error: %v", err)
